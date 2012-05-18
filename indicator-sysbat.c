@@ -43,7 +43,7 @@ int get_cpu()
 	return 100 * (diff_total-diff_idle) / diff_total;
 }
 
-int get_battery(void)
+int get_battery()
 {
 	const char *battery_state="/proc/acpi/battery/BAT0/state";
 	const char *battery_info="/proc/acpi/battery/BAT0/info";
@@ -91,30 +91,12 @@ int get_battery(void)
 	return 100 * remaining_capacity / last_full_capacity;	
 }
 
-int get_memory(void)
+int get_memory()
 {
 	glibtop_mem mem;
 	glibtop_get_mem (&mem);
 	/* used memory in percents */
 	return 100 - 100 * (mem.free + mem.buffer + mem.cached) / mem.total; 
-}
-
-gchar* format_net_label(gchar *prefix, int data)
-{
-	gchar *string;
-	if(data < 1000)
-	{
-		string = g_strdup_printf("%s%d B/s", prefix, data);
-	}
-	else if(data < 1000000)
-	{
-		string = g_strdup_printf("%s%.1f KiB/s", prefix, data/1000.0);
-	}
-	else
-	{
-		string = g_strdup_printf("%s%.2f MiB/s", prefix, data/1000000.0);
-	}
-	return string;
 }
 
 gboolean update()
@@ -160,9 +142,9 @@ int main (int argc, char **argv)
 
 	gtk_widget_show_all(indicator_menu);
 
-	indicator = app_indicator_new ("sysload", "", APP_INDICATOR_CATEGORY_SYSTEM_SERVICES);
+	indicator = app_indicator_new ("sysbat", "", APP_INDICATOR_CATEGORY_SYSTEM_SERVICES);
 	app_indicator_set_status(indicator, APP_INDICATOR_STATUS_ACTIVE);
-	app_indicator_set_label(indicator, "sysload", "sysload");
+	app_indicator_set_label(indicator, "sysbat", "sysbat");
 	app_indicator_set_menu(indicator, GTK_MENU (indicator_menu));
 
 	update();
