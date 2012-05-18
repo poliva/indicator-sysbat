@@ -10,13 +10,9 @@ License: this software is in the public domain.
 
 */
 
-#include <gtk/gtk.h>
 #include <libappindicator/app-indicator.h>
-#include <glibtop.h>
 #include <glibtop/cpu.h>
 #include <glibtop/mem.h>
-#include <glibtop/netload.h>
-#include <glibtop/netlist.h>
 
 
 /* update period in seconds */
@@ -121,59 +117,12 @@ gchar* format_net_label(gchar *prefix, int data)
 	return string;
 }
 
-/*
-void get_net(int traffic[2])
-{
-	static int bytes_in_old = 0;
-	static int bytes_out_old = 0;
-	static gboolean first_run = TRUE;
-	glibtop_netload netload;
-	glibtop_netlist netlist;
-	int bytes_in = 0;
-	int bytes_out = 0;
-	int i = 0;
-
-	gchar **interfaces = glibtop_get_netlist(&netlist);
-
-	for(i = 0; i < netlist.number; i++)
-	{
-		glibtop_get_netload(&netload, interfaces[i]);
-		bytes_in += netload.bytes_in;
-		bytes_out += netload.bytes_out;
-	}
-	g_strfreev(interfaces);    
-
-	if(first_run)
-	{
-		bytes_in_old = bytes_in;
-		bytes_out_old = bytes_out;
-		first_run = FALSE;
-	}
-
-	traffic[0] = (bytes_in - bytes_in_old) / PERIOD;
-	traffic[1] = (bytes_out - bytes_out_old) / PERIOD;
-
-	bytes_in_old = bytes_in;
-	bytes_out_old = bytes_out;
-}
-*/
-
 gboolean update()
 {
 	int cpu = get_cpu();
 	int memory = get_memory();
 	int battery = get_battery();
-	/* 
-	int net_traffic[2] = {0, 0};
-	get_net(net_traffic);
-	int net_down = net_traffic[0];
-	int net_up = net_traffic[1];  
 
-	int net_total = net_down + net_up;
-	gchar *label_net_total = format_net_label("Net: ", net_total);
-
-	gchar *indicator_label = g_strdup_printf("%s | CPU: %02d%% | Mem: %02d%% | Bat: %02d%%", label_net_total, cpu, memory, battery);
-	*/
 	gchar *indicator_label = g_strdup_printf("CPU: %02d%% | Mem: %02d%% | Bat: %02d%%", cpu, memory, battery);
 
 	app_indicator_set_label(indicator, indicator_label, "indicator-sysbat");
