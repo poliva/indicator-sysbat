@@ -1,14 +1,23 @@
 /*
-
-This is an Ubuntu appindicator that displays
-CPU load, memory usage and % of battery left.
-
-Based on indicator-netspeed:
-https://gist.github.com/982939
-
-License: this software is in the public domain.
-
-*/
+ *   indicator-sysbat
+ *   Copyright 2012 Pau Oliva Fora <pof@eslack.org>
+ *   Based on indicator-netspeed (public domain): https://gist.github.com/982939
+ *
+ *   This program is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU General Public License
+ *   as published by the Free Software Foundation; either version 2
+ *   of the License, or (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program; if not, write to the Free Software
+ *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ */
 
 #include <libappindicator/app-indicator.h>
 #include <glibtop/cpu.h>

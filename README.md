@@ -3,13 +3,13 @@ indicator-sysbat
 
 This is an Ubuntu appindicator that displays CPU load, memory usage and % of battery left.
 
-Based on indicator-netspeed:
-https://gist.github.com/982939
 
 License
 -------
 
-This software is in the public domain.
+This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
+
+
 
 Compile
 -------
