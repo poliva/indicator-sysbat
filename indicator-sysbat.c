@@ -28,6 +28,9 @@
 /* update period in seconds */
 #define PERIOD 8
 
+#define CPU_TEMP 	"Physical id 0"		/* cpu temperature sensor */
+#define PROXIMITY 	"TC0P"			/* Proxymity sensor */
+
 #define MAXLEN 1024
 
 AppIndicator *indicator;
@@ -35,6 +38,17 @@ GtkWidget *indicator_menu;
 
 GtkWidget *sysmon_item;
 GtkWidget *quit_item;
+
+typedef struct {
+	const sensors_chip_name *chip_name_temp;
+	const sensors_chip_name *chip_name_prox;
+	const sensors_chip_name *chip_name_fan;
+	unsigned int number_temp;
+	unsigned int number_prox;
+	unsigned int number_fan;
+} sensor_data;
+
+sensor_data sd;
 
 int get_cpu()
 {
@@ -103,97 +117,24 @@ int get_battery()
 
 int get_fan() {
 
-	const sensors_chip_name *chip_name;
-	const sensors_feature *feature;
-	const sensors_subfeature *subfeature;
 	double val;
-	int a,b,c;
-
-	a=0;
-	while ( (chip_name = sensors_get_detected_chips(NULL, &a)) ) {
-
-		b=0;
-		while ( (feature = sensors_get_features(chip_name, &b)) ) {
-
-			c=0;
-			while ( (subfeature = sensors_get_all_subfeatures(chip_name, feature, &c)) ) {
-				if (subfeature->type == SENSORS_SUBFEATURE_FAN_INPUT) {
-					sensors_get_value(chip_name, subfeature->number, &val);
-					break;
-				}
-			}
-		}
-
-	}
-
+	sensors_get_value(sd.chip_name_fan, sd.number_fan, &val);
 	return (int)val;
 }
 
 double get_temp() {
 
-	const sensors_chip_name *chip_name;
-	const sensors_feature *feature;
-	const sensors_subfeature *subfeature;
-	char *label;
 	double val;
-	int a,b,c;
-
-	a=0;
-	while ( (chip_name = sensors_get_detected_chips(NULL, &a)) ) {
-
-		b=0;
-		while ( (feature = sensors_get_features(chip_name, &b)) ) {
-
-			c=0;
-			while ( (subfeature = sensors_get_all_subfeatures(chip_name, feature, &c)) ) {
-				if (subfeature->type == SENSORS_SUBFEATURE_TEMP_INPUT) {
-					label = sensors_get_label(chip_name, feature);
-					if ( strcmp("Physical id 0", label)==0 ) {
-						sensors_get_value(chip_name, subfeature->number, &val);
-						break;
-					}
-				}
-			}
-		}
-
-	}
-
+	sensors_get_value(sd.chip_name_temp, sd.number_temp, &val);
 	return val;
 }
 
 double get_proximity() {
 
-	const sensors_chip_name *chip_name;
-	const sensors_feature *feature;
-	const sensors_subfeature *subfeature;
-	char *label;
 	double val;
-	int a,b,c;
-
-	a=0;
-	while ( (chip_name = sensors_get_detected_chips(NULL, &a)) ) {
-
-		b=0;
-		while ( (feature = sensors_get_features(chip_name, &b)) ) {
-
-			c=0;
-			while ( (subfeature = sensors_get_all_subfeatures(chip_name, feature, &c)) ) {
-				if (subfeature->type == SENSORS_SUBFEATURE_TEMP_INPUT) {
-					label = sensors_get_label(chip_name, feature);
-					if ( strcmp("TC0P", label)==0 ) {
-						sensors_get_value(chip_name, subfeature->number, &val);
-						break;
-					}
-				}
-			}
-		}
-
-	}
-
+	sensors_get_value(sd.chip_name_prox, sd.number_prox, &val);
 	return val;
 }
-
-
 
 int get_memory()
 {
@@ -201,6 +142,46 @@ int get_memory()
 	glibtop_get_mem (&mem);
 	/* used memory in percents */
 	return 100 - 100 * (mem.free + mem.buffer + mem.cached) / mem.total; 
+}
+
+void init_sensor_data() {
+
+	const sensors_chip_name *chip_name;
+	const sensors_feature *feature;
+	const sensors_subfeature *subfeature;
+	char *label;
+	int a,b,c;
+
+	a=0;
+	while ( (chip_name = sensors_get_detected_chips(NULL, &a)) ) {
+
+		b=0;
+		while ( (feature = sensors_get_features(chip_name, &b)) ) {
+
+			c=0;
+			while ( (subfeature = sensors_get_all_subfeatures(chip_name, feature, &c)) ) {
+				label = sensors_get_label(chip_name, feature);
+				if ( strcmp(CPU_TEMP, label)==0 ) {
+					printf ("Found sensor: %s (cpu temperature)\n", CPU_TEMP);
+					sd.chip_name_temp=chip_name;
+					sd.number_temp=subfeature->number;
+					break;
+				}
+				if ( strcmp(PROXIMITY, label)==0 ) {
+					printf ("Found sensor: %s (proximity temperature)\n", PROXIMITY);
+					sd.chip_name_prox=chip_name;
+					sd.number_prox=subfeature->number;
+					break;
+				}
+				if (subfeature->type == SENSORS_SUBFEATURE_FAN_INPUT) {
+					printf ("Found FAN sensor\n");
+					sd.chip_name_fan=chip_name;
+					sd.number_fan=subfeature->number;
+					break;
+				}
+			}
+		}
+	}
 }
 
 gboolean update()
@@ -255,6 +236,7 @@ int main (int argc, char **argv)
 	app_indicator_set_menu(indicator, GTK_MENU (indicator_menu));
 
 	sensors_init(NULL);
+	init_sensor_data();
 
 	update();
 
