@@ -22,6 +22,7 @@
 #include <libappindicator/app-indicator.h>
 #include <glibtop/cpu.h>
 #include <glibtop/mem.h>
+#include <sensors/sensors.h>
 
 
 /* update period in seconds */
@@ -100,6 +101,36 @@ int get_battery()
 	return 100 * remaining_capacity / last_full_capacity;	
 }
 
+int get_fan() {
+
+	const sensors_chip_name *chip_name;
+	const sensors_feature *feature;
+	const sensors_subfeature *subfeature;
+	double val;
+	int a,b,c;
+
+	sensors_init(NULL);
+
+	a=0;
+	while ( (chip_name = sensors_get_detected_chips(NULL, &a)) ) {
+
+		b=0;
+		while ( (feature = sensors_get_features(chip_name, &b)) ) {
+
+			c=0;
+			while ( (subfeature = sensors_get_all_subfeatures(chip_name, feature, &c)) ) {
+				if (subfeature->type == SENSORS_SUBFEATURE_FAN_INPUT) {
+					sensors_get_value(chip_name, subfeature->number, &val);
+					break;
+				}
+			}
+		}
+
+	}
+
+	return (int)val;
+}
+
 int get_memory()
 {
 	glibtop_mem mem;
@@ -113,8 +144,9 @@ gboolean update()
 	int cpu = get_cpu();
 	int memory = get_memory();
 	int battery = get_battery();
+	int fan = get_fan();
 
-	gchar *indicator_label = g_strdup_printf("CPU: %02d%% | Mem: %02d%% | Bat: %02d%%", cpu, memory, battery);
+	gchar *indicator_label = g_strdup_printf("CPU: %02d%% | Fan: %d RPM | Mem: %02d%% | Bat: %02d%%", cpu, fan, memory, battery);
 
 	app_indicator_set_label(indicator, indicator_label, "indicator-sysbat");
 	g_free(indicator_label);
