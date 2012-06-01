@@ -131,6 +131,40 @@ int get_fan() {
 	return (int)val;
 }
 
+double get_temp() {
+
+	const sensors_chip_name *chip_name;
+	const sensors_feature *feature;
+	const sensors_subfeature *subfeature;
+	char *label;
+	double val;
+	int a,b,c;
+
+	sensors_init(NULL);
+
+	a=0;
+	while ( (chip_name = sensors_get_detected_chips(NULL, &a)) ) {
+
+		b=0;
+		while ( (feature = sensors_get_features(chip_name, &b)) ) {
+
+			c=0;
+			while ( (subfeature = sensors_get_all_subfeatures(chip_name, feature, &c)) ) {
+				if (subfeature->type == SENSORS_SUBFEATURE_TEMP_INPUT) {
+					label = sensors_get_label(chip_name, feature);
+					if ( strcmp("Physical id 0", label)==0 ) {
+						sensors_get_value(chip_name, subfeature->number, &val);
+						break;
+					}
+				}
+			}
+		}
+
+	}
+
+	return val;
+}
+
 int get_memory()
 {
 	glibtop_mem mem;
@@ -145,8 +179,9 @@ gboolean update()
 	int memory = get_memory();
 	int battery = get_battery();
 	int fan = get_fan();
+	double temp = get_temp();
 
-	gchar *indicator_label = g_strdup_printf("CPU: %02d%% | Fan: %d RPM | Mem: %02d%% | Bat: %02d%%", cpu, fan, memory, battery);
+	gchar *indicator_label = g_strdup_printf("CPU: %02d%% | Temp: %.1fºC | Fan: %d RPM | Mem: %02d%% | Bat: %02d%%", cpu, temp, fan, memory, battery);
 
 	app_indicator_set_label(indicator, indicator_label, "indicator-sysbat");
 	g_free(indicator_label);
