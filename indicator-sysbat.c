@@ -165,6 +165,42 @@ double get_temp() {
 	return val;
 }
 
+double get_proximity() {
+
+	const sensors_chip_name *chip_name;
+	const sensors_feature *feature;
+	const sensors_subfeature *subfeature;
+	char *label;
+	double val;
+	int a,b,c;
+
+	sensors_init(NULL);
+
+	a=0;
+	while ( (chip_name = sensors_get_detected_chips(NULL, &a)) ) {
+
+		b=0;
+		while ( (feature = sensors_get_features(chip_name, &b)) ) {
+
+			c=0;
+			while ( (subfeature = sensors_get_all_subfeatures(chip_name, feature, &c)) ) {
+				if (subfeature->type == SENSORS_SUBFEATURE_TEMP_INPUT) {
+					label = sensors_get_label(chip_name, feature);
+					if ( strcmp("TC0P", label)==0 ) {
+						sensors_get_value(chip_name, subfeature->number, &val);
+						break;
+					}
+				}
+			}
+		}
+
+	}
+
+	return val;
+}
+
+
+
 int get_memory()
 {
 	glibtop_mem mem;
@@ -180,8 +216,9 @@ gboolean update()
 	int battery = get_battery();
 	int fan = get_fan();
 	double temp = get_temp();
+	double prox = get_proximity();
 
-	gchar *indicator_label = g_strdup_printf("CPU: %02d%% | Temp: %.1fºC | Fan: %d RPM | Mem: %02d%% | Bat: %02d%%", cpu, temp, fan, memory, battery);
+	gchar *indicator_label = g_strdup_printf("CPU: %02d%% | Temp: %.1fºC | Prox: %.1fºC | Fan: %d RPM | Mem: %02d%% | Bat: %02d%%", cpu, temp, prox, fan, memory, battery);
 
 	app_indicator_set_label(indicator, indicator_label, "indicator-sysbat");
 	g_free(indicator_label);
