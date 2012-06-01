@@ -109,8 +109,6 @@ int get_fan() {
 	double val;
 	int a,b,c;
 
-	sensors_init(NULL);
-
 	a=0;
 	while ( (chip_name = sensors_get_detected_chips(NULL, &a)) ) {
 
@@ -139,8 +137,6 @@ double get_temp() {
 	char *label;
 	double val;
 	int a,b,c;
-
-	sensors_init(NULL);
 
 	a=0;
 	while ( (chip_name = sensors_get_detected_chips(NULL, &a)) ) {
@@ -173,8 +169,6 @@ double get_proximity() {
 	char *label;
 	double val;
 	int a,b,c;
-
-	sensors_init(NULL);
 
 	a=0;
 	while ( (chip_name = sensors_get_detected_chips(NULL, &a)) ) {
@@ -259,6 +253,8 @@ int main (int argc, char **argv)
 	app_indicator_set_status(indicator, APP_INDICATOR_STATUS_ACTIVE);
 	app_indicator_set_label(indicator, "sysbat", "sysbat");
 	app_indicator_set_menu(indicator, GTK_MENU (indicator_menu));
+
+	sensors_init(NULL);
 
 	update();
 
