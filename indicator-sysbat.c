@@ -50,6 +50,11 @@ typedef struct {
 
 sensor_data sd;
 
+gboolean fan_enabled=FALSE;
+gboolean proximity_enabled=FALSE;
+gboolean temperature_enabled=FALSE;
+gboolean battery_enabled=TRUE;
+
 int get_cpu()
 {
 	static int cpu_total_old = 0;
@@ -79,7 +84,8 @@ int get_battery()
 	fd = fopen (battery_state, "r");
 	if (fd == NULL) {
 		fprintf (stderr,"Could not open battery_state: %s\n", battery_state);
-		return (0);
+		battery_enabled=FALSE;
+		return (-1);
 	}
 
 	while ((fgets (input, sizeof (input), fd)) != NULL) {
@@ -97,7 +103,7 @@ int get_battery()
 	fd = fopen (battery_info, "r");
 	if (fd == NULL) {
 		fprintf (stderr,"Could not open battery_info: %s\n", battery_info);
-		return (0);
+		return (-1);
 	}
 
 	while ((fgets (input, sizeof (input), fd)) != NULL) {
@@ -165,18 +171,21 @@ void init_sensor_data() {
 					printf ("Found sensor: %s (cpu temperature)\n", CPU_TEMP);
 					sd.chip_name_temp=chip_name;
 					sd.number_temp=subfeature->number;
+					temperature_enabled=TRUE;
 					break;
 				}
 				if ( strcmp(PROXIMITY, label)==0 ) {
 					printf ("Found sensor: %s (proximity temperature)\n", PROXIMITY);
 					sd.chip_name_prox=chip_name;
 					sd.number_prox=subfeature->number;
+					proximity_enabled=TRUE;
 					break;
 				}
 				if (subfeature->type == SENSORS_SUBFEATURE_FAN_INPUT) {
 					printf ("Found FAN sensor\n");
 					sd.chip_name_fan=chip_name;
 					sd.number_fan=subfeature->number;
+					fan_enabled=TRUE;
 					break;
 				}
 			}
@@ -186,17 +195,26 @@ void init_sensor_data() {
 
 gboolean update()
 {
-	int cpu = get_cpu();
-	int memory = get_memory();
-	int battery = get_battery();
-	int fan = get_fan();
-	double temp = get_temp();
-	double prox = get_proximity();
+	char label[100] = {0};
+	int cpu, memory, battery, fan;
+	double temp, prox;
 
-	gchar *indicator_label = g_strdup_printf("CPU: %02d%% | Temp: %.1fºC | Prox: %.1fºC | Fan: %d RPM | Mem: %02d%% | Bat: %02d%%", cpu, temp, prox, fan, memory, battery);
+	cpu = get_cpu();
+	memory = get_memory();
 
-	app_indicator_set_label(indicator, indicator_label, "indicator-sysbat");
-	g_free(indicator_label);
+	if (battery_enabled) battery = get_battery();
+	if (fan_enabled) fan = get_fan();
+	if (temperature_enabled) temp = get_temp();
+	if (proximity_enabled) prox = get_proximity();
+
+	sprintf (label, "CPU: %02d%% | ", cpu);
+	if (temperature_enabled) sprintf (label, "%sTemp: %.1fºC | ", label, temp);
+	if (proximity_enabled) sprintf (label, "%sProx: %.1fºC | ", label, prox);
+	if (fan_enabled) sprintf (label, "%sFan: %d RPM | ", label, fan);
+	sprintf (label, "%sMem: %02d%%", label, memory);
+	if (battery_enabled) sprintf (label, "%s | Bat: %02d%%", label, battery);
+
+	app_indicator_set_label(indicator, label, "indicator-sysbat");
 
 	return TRUE;
 }
