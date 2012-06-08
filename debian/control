@@ -1,0 +1,22 @@
+Source: indicator-sysbat
+Section: misc
+Priority: extra
+Maintainer: Pau Oliva Fora (pof) <pau@eslack.org>
+Build-Depends: debhelper (>= 8.0.0),
+ autotools-dev,
+ pkg-config,
+ libgtop2-dev,
+ libgtk-3-dev,
+ libappindicator3-dev,
+ libsensors4-dev
+Standards-Version: 3.9.3
+Homepage: https://github.com/poliva/indicator-sysbat
+Vcs-Git: git://github.com/poliva/indicator-sysbat.git
+Vcs-Browser: https://github.com/poliva/indicator-sysbat
+
+Package: indicator-sysbat
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: a simple indicator showing CPU, Memory, Battery and fan speed.
+ This is an Ubuntu appindicator that displays CPU load, CPU temperature,
+ Proximity temperature, fan speed, memory usage and % of battery left.
