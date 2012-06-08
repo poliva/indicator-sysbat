@@ -20,6 +20,7 @@
 #include <glibtop/mem.h>
 #include <sensors/sensors.h>
 
+#define VERSION "1.0"
 
 /* update period in seconds */
 #define PERIOD 8
@@ -253,6 +254,8 @@ static void start_sysmon()
 
 int main (int argc, char **argv)
 {
+
+	printf("indicator-sysbat v%s - (c)2012 Pau Oliva Fora <pof@eslack.org>\n", VERSION);
 	gtk_init (&argc, &argv);
 
 	indicator_menu = gtk_menu_new();
