@@ -2,7 +2,6 @@ indicator-sysbat
 ================
 
 This is an Ubuntu appindicator that displays CPU load, CPU temperature, Proximity temperature, fan speed, memory usage and % of battery left.
-At the moment most sensors will only work on Macbook based computers (I wrote this for my own MacbookAir), i'll try to implement a more configurable sensor selector in the future, so it will be more generic.
 
 
 License
