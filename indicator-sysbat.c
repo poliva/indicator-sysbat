@@ -28,9 +28,6 @@
 /* update period in seconds */
 #define PERIOD 8
 
-#define CPU_TEMP 	"Physical id 0"		/* cpu temperature sensor */
-#define PROXIMITY 	"TC0P"			/* Proxymity sensor */
-
 #define MAXLEN 1024
 
 AppIndicator *indicator;
@@ -50,10 +47,13 @@ typedef struct {
 
 sensor_data sd;
 
+char battery_info[MAXLEN];
+char battery_state[MAXLEN];
+
 gboolean fan_enabled=FALSE;
 gboolean proximity_enabled=FALSE;
 gboolean temperature_enabled=FALSE;
-gboolean battery_enabled=TRUE;
+gboolean battery_enabled=FALSE;
 
 int get_cpu()
 {
@@ -74,8 +74,6 @@ int get_cpu()
 
 int get_battery()
 {
-	const char *battery_state="/proc/acpi/battery/BAT0/state";
-	const char *battery_info="/proc/acpi/battery/BAT0/info";
 	char input[MAXLEN], temp[MAXLEN];
 	FILE *fd;
 	size_t len;
@@ -150,6 +148,34 @@ int get_memory()
 	return 100 - 100 * (mem.free + mem.buffer + mem.cached) / mem.total; 
 }
 
+void init_battery_data() {
+
+	FILE *fd;
+	char input[MAXLEN];
+	const char *battery_names[] = {"BAT0", "BAT1", "C23A", "C23B"};
+	unsigned int i;
+
+	for (i=0; i< sizeof(battery_names)/sizeof(battery_names[0]) && !battery_enabled; i++) {
+
+		sprintf (battery_info, "/proc/acpi/battery/%s/info", battery_names[i]);
+		sprintf (battery_state, "/proc/acpi/battery/%s/state", battery_names[i]);
+
+		fd = fopen (battery_info, "r");
+		if (fd == NULL) 
+			continue;
+
+		while ((fgets (input, sizeof (input), fd)) != NULL) {
+
+			if ((strncmp ("last full capacity:", input, 19)) == 0) {
+				battery_enabled=TRUE;
+				printf("Found battery info at /proc/acpi/battery/%s/\n", battery_names[i]);
+			}
+		}
+
+		fclose(fd);
+	}
+}
+
 void init_sensor_data() {
 
 	const sensors_chip_name *chip_name;
@@ -167,15 +193,15 @@ void init_sensor_data() {
 			c=0;
 			while ( (subfeature = sensors_get_all_subfeatures(chip_name, feature, &c)) ) {
 				label = sensors_get_label(chip_name, feature);
-				if ( strcmp(CPU_TEMP, label)==0 ) {
-					printf ("Found sensor: %s (cpu temperature)\n", CPU_TEMP);
+				if ( strcmp("Physical id 0", label)==0 || strcmp("Core 0", label)==0 || strcmp("temp1", label)==0 ) {
+					printf ("Found temperature sensor\n");
 					sd.chip_name_temp=chip_name;
 					sd.number_temp=subfeature->number;
 					temperature_enabled=TRUE;
 					break;
 				}
-				if ( strcmp(PROXIMITY, label)==0 ) {
-					printf ("Found sensor: %s (proximity temperature)\n", PROXIMITY);
+				if ( strcmp("TC0P", label)==0 ) {
+					printf ("Found proximity temperature sensor\n");
 					sd.chip_name_prox=chip_name;
 					sd.number_prox=subfeature->number;
 					proximity_enabled=TRUE;
@@ -255,6 +281,7 @@ int main (int argc, char **argv)
 
 	sensors_init(NULL);
 	init_sensor_data();
+	init_battery_data();
 
 	update();
 
