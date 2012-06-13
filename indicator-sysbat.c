@@ -75,6 +75,7 @@ int get_battery()
 	FILE *fd;
 	size_t len;
 	int remaining_capacity=1, last_full_capacity=67000;
+	int ret;
 
 	fd = fopen (battery_state, "r");
 	if (fd == NULL) {
@@ -113,7 +114,11 @@ int get_battery()
 
 	fclose(fd);
 
-	return 100 * remaining_capacity / last_full_capacity;	
+	ret = 100 * remaining_capacity / last_full_capacity;	
+	if (ret > 100)
+		return 100;
+	else
+		return ret;
 }
 
 int get_fan() {
